@@ -1,0 +1,43 @@
+name: CI
+
+on:
+  push
+
+jobs:
+  front:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: 'Build module (ex: npm run build)'
+        run: docker pull alpine
+      - name: Package module
+        run: docker tag alpine front
+      - name: 'Save for next job'
+        uses: ./
+        with:
+          serialize: front
+  back:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: 'Build module (ex: mvn package)'
+        run: docker pull alpine
+      - name: Package module
+        run: docker tag alpine back
+      - name: 'Save for next job'
+        uses: ./
+        with:
+          serialize: back
+  deploy:
+    needs: [ front, back ]
+    strategy:
+      matrix:
+        module: [ front, back ]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: 'Restore from previous job'
+        uses: ./
+        with:
+          restore: true
+      - run: docker image inspect ${{ matrix.module }}
