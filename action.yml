@@ -1,4 +1,4 @@
-name: 'Docker image serializer'
+name: 'Docker image serialization'
 description: 'Serialize your Docker image between your jobs'
 inputs:
   serialize:

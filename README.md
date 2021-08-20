@@ -38,13 +38,13 @@ Example:
     runs-on: ubuntu-latest
     steps:
       - run: docker build --tag app:latest .
-      - uses: pinguet62/docker-image-serialization@master
+      - uses: pinguet62/docker-image-serialization@main
         with:
           serialize: app:latest
   deploy:
     runs-on: ubuntu-latest
     steps:
-      - uses: pinguet62/docker-image-serialization@master
+      - uses: pinguet62/docker-image-serialization@main
         with:
           restore: true
       - run: docker push app:latest
