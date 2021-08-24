@@ -1,10 +1,6 @@
 # Docker image serialization
 
-GitHub Action to share *Docker images* between *jobs*.
-
-## Requirement
-
-GitHub Action jobs are executed in individual (see `runs-on`)
+GitHub Action to serialize *Docker images* between *jobs*.
 
 ## Inputs
 
@@ -34,18 +30,26 @@ Default `false` (not triggerred).
 Example:
 
 ```yaml
+  build-back:
+    runs-on: ubuntu-latest
+    steps:
+      - run: docker build --tag back:latest .
+      - uses: pinguet62/docker-image-serialization@main
+        with:
+          serialize: back:latest
   build:
     runs-on: ubuntu-latest
     steps:
-      - run: docker build --tag app:latest .
+      - run: docker build --tag front:latest .
       - uses: pinguet62/docker-image-serialization@main
         with:
-          serialize: app:latest
+          serialize: front:latest
   deploy:
     runs-on: ubuntu-latest
     steps:
       - uses: pinguet62/docker-image-serialization@main
         with:
           restore: true
-      - run: docker push app:latest
+      - run: docker push back:latest
+      - run: docker push front:latest
 ```

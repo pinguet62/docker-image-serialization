@@ -1,12 +1,14 @@
 name: 'Docker image serialization'
-description: 'Serialize your Docker image between your jobs'
+description: 'Serialize Docker images between jobs'
 inputs:
   serialize:
-    description: 'Images to serialize'
+    description: 'Docker images to serialize'
     required: false
+    default: ''
   restore:
     description: 'Restore all Docker images'
-    default: false
+    required: false
+    default: 'false'
 runs:
   using: 'node12'
-  main: 'index.js'
+  main: 'dist/index.js'
