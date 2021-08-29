@@ -6,7 +6,6 @@ import fs from 'fs'
 import path from 'path'
 
 const tempFolder = `${process.env['RUNNER_TEMP']}/docker-image-serialization`
-const artifactName = 'docker-images'
 
 const artifactClient = artifact.create()
 
@@ -21,40 +20,51 @@ function recursiveReaddirSync(dir: string): string[] {
   return files
 }
 
-async function runSerialize(dockerImageFilterReference: string): Promise<void> {
+async function runSerialize(
+  artifactName: string,
+  dockerImageFilterReference: string
+): Promise<void> {
   const images = await exec.getExecOutput(
     `docker image ls --format "{{.Repository}}:{{.Tag}}" --filter=reference=${dockerImageFilterReference}`
   )
   for (const image of images.stdout.trimEnd().split('\n')) {
-    // intermediate folders
-    const folder = `${tempFolder}/${image.split(':')[0]}`
-    await io.mkdirP(folder)
+    const artifactFolder = `${tempFolder}/${artifactName}`
 
-    const file = `${tempFolder}/${image.replace(':', '/')}.tar`
+    const imageFolder = `${artifactFolder}/${image.split(':')[0]}`
+    const imageFile = `${artifactFolder}/${image.replace(':', '/')}.tar`
 
-    await exec.exec(`docker save --output ${file} ${image}`)
+    await io.mkdirP(imageFolder)
+    await exec.exec(`docker save --output ${imageFile} ${image}`)
 
-    await artifactClient.uploadArtifact(artifactName, [file], tempFolder)
+    await artifactClient.uploadArtifact(
+      artifactName,
+      [imageFile],
+      artifactFolder
+    )
   }
 }
 
-async function runDeserialize(): Promise<void> {
-  await artifactClient.downloadArtifact(artifactName, tempFolder)
+async function runDeserialize(artifactName: string): Promise<void> {
+  const artifactFolder = `${tempFolder}/${artifactName}`
 
-  for (const file of recursiveReaddirSync(tempFolder)) {
-    await exec.exec(`docker load --input ${file}`)
+  await io.mkdirP(artifactFolder)
+  await artifactClient.downloadArtifact(artifactName, artifactFolder)
+
+  for (const imageFile of recursiveReaddirSync(artifactFolder)) {
+    await exec.exec(`docker load --input ${imageFile}`)
   }
 }
 
 async function run(): Promise<void> {
+  const artifactName = core.getInput('artifact-name')
   try {
     const serialize = core.getMultilineInput('serialize')
     for (const dockerImageFilterReference of serialize)
-      await runSerialize(dockerImageFilterReference)
+      await runSerialize(artifactName, dockerImageFilterReference)
 
     const restore = core.getBooleanInput('restore')
     if (restore) {
-      await runDeserialize()
+      await runDeserialize(artifactName)
     }
   } catch (error) {
     core.setFailed(error.message)

@@ -45,7 +45,6 @@ const io = __importStar(__nccwpck_require__(7436));
 const fs_1 = __importDefault(__nccwpck_require__(5747));
 const path_1 = __importDefault(__nccwpck_require__(5622));
 const tempFolder = `${process.env['RUNNER_TEMP']}/docker-image-serialization`;
-const artifactName = 'docker-images';
 const artifactClient = artifact.create();
 function recursiveReaddirSync(dir) {
     const files = [];
@@ -58,36 +57,39 @@ function recursiveReaddirSync(dir) {
         }
     return files;
 }
-function runSerialize(dockerImageFilterReference) {
+function runSerialize(artifactName, dockerImageFilterReference) {
     return __awaiter(this, void 0, void 0, function* () {
         const images = yield exec.getExecOutput(`docker image ls --format "{{.Repository}}:{{.Tag}}" --filter=reference=${dockerImageFilterReference}`);
         for (const image of images.stdout.trimEnd().split('\n')) {
-            // intermediate folders
-            const folder = `${tempFolder}/${image.split(':')[0]}`;
-            yield io.mkdirP(folder);
-            const file = `${tempFolder}/${image.replace(':', '/')}.tar`;
-            yield exec.exec(`docker save --output ${file} ${image}`);
-            yield artifactClient.uploadArtifact(artifactName, [file], tempFolder);
+            const artifactFolder = `${tempFolder}/${artifactName}`;
+            const imageFolder = `${artifactFolder}/${image.split(':')[0]}`;
+            const imageFile = `${artifactFolder}/${image.replace(':', '/')}.tar`;
+            yield io.mkdirP(imageFolder);
+            yield exec.exec(`docker save --output ${imageFile} ${image}`);
+            yield artifactClient.uploadArtifact(artifactName, [imageFile], artifactFolder);
         }
     });
 }
-function runDeserialize() {
+function runDeserialize(artifactName) {
     return __awaiter(this, void 0, void 0, function* () {
-        yield artifactClient.downloadArtifact(artifactName, tempFolder);
-        for (const file of recursiveReaddirSync(tempFolder)) {
-            yield exec.exec(`docker load --input ${file}`);
+        const artifactFolder = `${tempFolder}/${artifactName}`;
+        yield io.mkdirP(artifactFolder);
+        yield artifactClient.downloadArtifact(artifactName, artifactFolder);
+        for (const imageFile of recursiveReaddirSync(artifactFolder)) {
+            yield exec.exec(`docker load --input ${imageFile}`);
         }
     });
 }
 function run() {
     return __awaiter(this, void 0, void 0, function* () {
+        const artifactName = core.getInput('artifact-name');
         try {
             const serialize = core.getMultilineInput('serialize');
             for (const dockerImageFilterReference of serialize)
-                yield runSerialize(dockerImageFilterReference);
+                yield runSerialize(artifactName, dockerImageFilterReference);
             const restore = core.getBooleanInput('restore');
             if (restore) {
-                yield runDeserialize();
+                yield runDeserialize(artifactName);
             }
         }
         catch (error) {

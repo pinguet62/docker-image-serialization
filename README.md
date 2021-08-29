@@ -4,14 +4,25 @@ GitHub Action to serialize *Docker images* between *jobs*.
 
 ## Inputs
 
+### `artifact-name`
+
+Name of **artifact** to use.
+
+Required: `false`.  
+Type: `string`.  
+Default `docker-images`.
+
+:information_source: *Can be used to use distinct artifacts (ex: separate helpers and final application).*
+
 ### `serialize`
 
 List of **pattern** used to define which Docker image to serialize, and use on next jobs.
 
-:information_source: The value is using by [`docker image ls --filter=reference=` option](https://docs.docker.com/engine/reference/commandline/images/#filter-images-by-reference) option.
-
+Required: `false`.  
 Type: `string[]`.  
 Default `[]` (no image to serialize).
+
+:information_source: *The value is using by [`docker image ls --filter=reference=` option](https://docs.docker.com/engine/reference/commandline/images/#filter-images-by-reference) option.*
 
 Examples:
 * `"backend"`: all images with name `backend`
@@ -22,6 +33,7 @@ Examples:
 
 Flag to **enable deserialization**.
 
+Required: `false`.  
 Type: `boolean`.  
 Default `false` (not triggerred).
 

@@ -1,6 +1,10 @@
 name: 'Docker image serialization'
 description: 'Serialize Docker images between jobs'
 inputs:
+  artifact-name:
+    description: 'Name of target artifact'
+    required: false
+    default: 'docker-images'
   serialize:
     description: 'Docker images to serialize'
     required: false

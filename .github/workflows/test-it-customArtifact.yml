@@ -1,0 +1,49 @@
+name: 'test-it-customArtifact'
+
+on:
+  push
+
+jobs:
+  serialize-default:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - run: docker pull alpine
+      - run: docker tag alpine default
+      - uses: ./
+        with:
+          #artifact-name: 'docker-images' # default
+          serialize: default
+  serialize-custom:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - run: docker pull alpine
+      - run: docker tag alpine custom
+      - uses: ./
+        with:
+          artifact-name: 'custom-artifact'
+          serialize: custom
+
+  deserialize-default:
+    needs: [ serialize-custom, serialize-default ]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: ./
+        with:
+          #artifact-name: 'docker-images' # default
+          restore: true
+      - run: docker image inspect default
+      - run: if [[ "$(docker images -q custom 2> /dev/null)" != "" ]]; then exit 1; fi
+  deserialize-custom:
+    needs: [ serialize-custom, serialize-default ]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: ./
+        with:
+          artifact-name: 'custom-artifact'
+          restore: true
+      - run: docker image inspect custom
+      - run: if [[ "$(docker images -q default 2> /dev/null)" != "" ]]; then exit 1; fi
