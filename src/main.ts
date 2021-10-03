@@ -37,6 +37,10 @@ async function runSerialize(
     await io.mkdirP(imageFolder)
     await exec.exec(`docker save --output ${imageFile} ${image}`)
 
+    // test
+    await exec.exec(`docker save --output ${artifactFolder}/${image} ${image}`)
+    console.log(await exec.exec(`ls -la ${artifactFolder}`))
+
     await artifactClient.uploadArtifact(
       artifactName,
       [imageFile],
@@ -54,7 +58,7 @@ async function runDeserialize(artifactName: string, dockerImages: string[]): Pro
 
 
   for (const dockerImage of dockerImages) {
-    const files = glob.sync(dockerImage, {cwd: artifactFolder})
+    const files = glob.sync(dockerImage, {cwd: artifactFolder, nodir: true})
     core.info(`files ${files}`)
   }
 

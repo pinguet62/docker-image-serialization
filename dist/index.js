@@ -67,6 +67,9 @@ function runSerialize(artifactName, dockerImageFilterReference) {
             const imageFile = `${artifactFolder}/${image.replace(':', '/')}.tar`;
             yield io.mkdirP(imageFolder);
             yield exec.exec(`docker save --output ${imageFile} ${image}`);
+            // test
+            yield exec.exec(`docker save --output ${artifactFolder}/${image} ${image}`);
+            console.log(yield exec.exec(`ls -la ${artifactFolder}`));
             yield artifactClient.uploadArtifact(artifactName, [imageFile], artifactFolder);
         }
     });
@@ -78,7 +81,7 @@ function runDeserialize(artifactName, dockerImages) {
         const artifactFolder = `${tempFolder}/${artifactName}`;
         yield artifactClient.downloadArtifact(artifactName, artifactFolder, { createArtifactFolder: true });
         for (const dockerImage of dockerImages) {
-            const files = glob.sync(dockerImage, { cwd: artifactFolder });
+            const files = glob.sync(dockerImage, { cwd: artifactFolder, nodir: true });
             core.info(`files ${files}`);
         }
         for (const imageFile of recursiveReaddirSync(artifactFolder)) {
