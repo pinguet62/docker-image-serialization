@@ -21,6 +21,11 @@ function recursiveReaddirSync(dir: string): string[] {
   return files
 }
 
+/** Rename "myRepo/myImage/myVersion.tar" to "myRepo/myImage:myVersion" */
+async function renameArtifactToDocker(folder: string) {
+
+}
+
 async function runSerialize(
   artifactName: string,
   dockerImageFilterReference: string
@@ -32,19 +37,14 @@ async function runSerialize(
     const artifactFolder = `${tempFolder}/${artifactName}`
 
     const imageFolder = `${artifactFolder}/${image.split(':')[0]}`
-    const imageFile = `${artifactFolder}/${image.replace(':', '/')}.tar`
-
     await io.mkdirP(imageFolder)
-    await exec.exec(`docker save --output ${imageFile} ${image}`)
 
-    // test
-    const imageFile2 = `${artifactFolder}/${image}`
-    await exec.exec(`docker save --output ${imageFile2} ${image}`)
-    console.log(await exec.exec(`ls -la ${artifactFolder}`))
+    const imageFile = `${artifactFolder}/${image}`
+    await exec.exec(`docker save --output ${imageFile} ${image}`)
 
     await artifactClient.uploadArtifact(
       artifactName,
-      [imageFile, imageFile2],
+      [imageFile],
       artifactFolder
     )
   }
@@ -56,7 +56,7 @@ async function runDeserialize(artifactName: string, dockerImages: string[]): Pro
   const artifactFolder = `${tempFolder}/${artifactName}`
 
   await artifactClient.downloadArtifact(artifactName, artifactFolder, {createArtifactFolder: true})
-
+  await renameArtifactToDocker(artifactFolder)
 
   for (const dockerImage of dockerImages) {
     const files = glob.sync(dockerImage, {cwd: artifactFolder, nodir: true})

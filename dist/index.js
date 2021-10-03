@@ -58,20 +58,21 @@ function recursiveReaddirSync(dir) {
         }
     return files;
 }
+/** Rename "myRepo/myImage/myVersion.tar" to "myRepo/myImage:myVersion" */
+function renameArtifactToDocker(folder) {
+    return __awaiter(this, void 0, void 0, function* () {
+    });
+}
 function runSerialize(artifactName, dockerImageFilterReference) {
     return __awaiter(this, void 0, void 0, function* () {
         const images = yield exec.getExecOutput(`docker image ls --format "{{.Repository}}:{{.Tag}}" --filter=reference=${dockerImageFilterReference}`);
         for (const image of images.stdout.trimEnd().split('\n')) {
             const artifactFolder = `${tempFolder}/${artifactName}`;
             const imageFolder = `${artifactFolder}/${image.split(':')[0]}`;
-            const imageFile = `${artifactFolder}/${image.replace(':', '/')}.tar`;
             yield io.mkdirP(imageFolder);
+            const imageFile = `${artifactFolder}/${image}`;
             yield exec.exec(`docker save --output ${imageFile} ${image}`);
-            // test
-            const imageFile2 = `${artifactFolder}/${image}`;
-            yield exec.exec(`docker save --output ${imageFile2} ${image}`);
-            console.log(yield exec.exec(`ls -la ${artifactFolder}`));
-            yield artifactClient.uploadArtifact(artifactName, [imageFile, imageFile2], artifactFolder);
+            yield artifactClient.uploadArtifact(artifactName, [imageFile], artifactFolder);
         }
     });
 }
@@ -81,6 +82,7 @@ function runDeserialize(artifactName, dockerImages) {
             return;
         const artifactFolder = `${tempFolder}/${artifactName}`;
         yield artifactClient.downloadArtifact(artifactName, artifactFolder, { createArtifactFolder: true });
+        yield renameArtifactToDocker(artifactFolder);
         for (const dockerImage of dockerImages) {
             const files = glob.sync(dockerImage, { cwd: artifactFolder, nodir: true });
             core.info(`files ${files}`);
