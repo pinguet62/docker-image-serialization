@@ -2,6 +2,7 @@ import * as artifact from '@actions/artifact'
 import * as core from '@actions/core'
 import * as exec from '@actions/exec'
 import * as io from '@actions/io'
+import * as glob from 'glob'
 import fs from 'fs'
 import path from 'path'
 
@@ -49,8 +50,13 @@ async function runDeserialize(artifactName: string, dockerImages: string[]): Pro
 
   const artifactFolder = `${tempFolder}/${artifactName}`
 
-  await io.mkdirP(artifactFolder)
-  await artifactClient.downloadArtifact(artifactName, artifactFolder)
+  await artifactClient.downloadArtifact(artifactName, artifactFolder, {createArtifactFolder: true})
+
+
+  for (const dockerImage of dockerImages) {
+    const files = glob.sync(dockerImage, {cwd: artifactFolder})
+    console.log('files', files)
+  }
 
   for (const imageFile of recursiveReaddirSync(artifactFolder)) {
     await exec.exec(`docker load --input ${imageFile}`)
