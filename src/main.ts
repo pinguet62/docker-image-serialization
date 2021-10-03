@@ -2,6 +2,7 @@ import * as artifact from '@actions/artifact'
 import * as core from '@actions/core'
 import * as exec from '@actions/exec'
 import * as io from '@actions/io'
+import * as glob from '@actions/glob'
 import fs from 'fs'
 import path from 'path'
 
@@ -62,10 +63,9 @@ async function run(): Promise<void> {
     for (const dockerImageFilterReference of serialize)
       await runSerialize(artifactName, dockerImageFilterReference)
 
-    const restore = core.getBooleanInput('restore')
-    if (restore) {
-      await runDeserialize(artifactName)
-    }
+    const restore = core.getMultilineInput('restore')
+    for (const dockerImage of restore)
+      await runDeserialize(artifactName, dockerImage)
   } catch (error) {
     core.setFailed(error.message)
   }

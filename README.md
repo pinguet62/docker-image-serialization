@@ -16,7 +16,7 @@ Default `docker-images`.
 
 ### `serialize`
 
-List of **pattern** used to define which Docker image to serialize, and use on next jobs.
+List of **pattern** used to define which Docker image to serialize (and then to use on next jobs).
 
 Required: `false`.  
 Type: `string[]`.  
@@ -31,11 +31,11 @@ Examples:
 
 ### `restore`
 
-Flag to **enable deserialization**.
+List of **pattern** used to define which Docker image to deserialize.
 
 Required: `false`.  
-Type: `boolean`.  
-Default `false` (not triggerred).
+Type: `string[]`.  
+Default `[]` (not triggerred).
 
 ## Usage
 
@@ -61,7 +61,7 @@ Example:
     steps:
       - uses: pinguet62/docker-image-serialization@main
         with:
-          restore: true
+          restore: '**/**'
       - run: docker push back:latest
       - run: docker push front:latest
 ```

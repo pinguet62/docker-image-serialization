@@ -10,9 +10,9 @@ inputs:
     required: false
     default: ''
   restore:
-    description: 'Restore all Docker images'
+    description: 'Docker images to deserialize'
     required: false
-    default: 'false'
+    default: ''
 runs:
   using: 'node12'
   main: 'dist/index.js'

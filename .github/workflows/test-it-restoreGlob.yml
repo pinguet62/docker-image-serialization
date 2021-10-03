@@ -1,0 +1,47 @@
+name: 'test-it-restoreGlob'
+
+on:
+  push
+
+jobs:
+  serialize-simple:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - run: docker pull alpine
+      - run: docker tag alpine simple
+      - uses: ./
+        with:
+          serialize: simple:latest
+  serialize-repository:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - run: docker pull alpine
+      - run: docker tag alpine repository/sub:latest
+      - uses: ./
+        with:
+          serialize: repository/sub:latest
+
+  deserialize-simple:
+    needs: serialize-simple
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: ./
+        with:
+          restore: simple:latest
+      - run: docker image inspect simple:latest
+      - run: >
+          if [[ "$(docker images -q repository/sub:latest 2> /dev/null)" != "" ]]; then exit 1; fi
+  deserialize-repository:
+    needs: serialize-repository
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: ./
+        with:
+          restore: repository/sub:latest
+      - run: docker image inspect repository/sub:latest
+      - run: >
+          if [[ "$(docker images -q simple:latest 2> /dev/null)" != "" ]]; then exit 1; fi
