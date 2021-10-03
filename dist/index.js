@@ -42,6 +42,7 @@ const artifact = __importStar(__nccwpck_require__(2605));
 const core = __importStar(__nccwpck_require__(2186));
 const exec = __importStar(__nccwpck_require__(1514));
 const io = __importStar(__nccwpck_require__(7436));
+const glob = __importStar(__nccwpck_require__(1957));
 const fs_1 = __importDefault(__nccwpck_require__(5747));
 const path_1 = __importDefault(__nccwpck_require__(5622));
 const tempFolder = `${process.env['RUNNER_TEMP']}/docker-image-serialization`;
@@ -70,11 +71,16 @@ function runSerialize(artifactName, dockerImageFilterReference) {
         }
     });
 }
-function runDeserialize(artifactName) {
+function runDeserialize(artifactName, dockerImages) {
     return __awaiter(this, void 0, void 0, function* () {
+        if (dockerImages.length === 0)
+            return;
         const artifactFolder = `${tempFolder}/${artifactName}`;
-        yield io.mkdirP(artifactFolder);
-        yield artifactClient.downloadArtifact(artifactName, artifactFolder);
+        yield artifactClient.downloadArtifact(artifactName, artifactFolder, { createArtifactFolder: true });
+        for (const dockerImage of dockerImages) {
+            const files = glob.sync(dockerImage, { cwd: artifactFolder });
+            core.info(`files ${files}`);
+        }
         for (const imageFile of recursiveReaddirSync(artifactFolder)) {
             yield exec.exec(`docker load --input ${imageFile}`);
         }
@@ -87,9 +93,8 @@ function run() {
             const serialize = core.getMultilineInput('serialize');
             for (const dockerImageFilterReference of serialize)
                 yield runSerialize(artifactName, dockerImageFilterReference);
-            const restore = core.getMultilineInput('restore');
-            for (const dockerImage of restore)
-                yield runDeserialize(artifactName /*, dockerImage*/);
+            const dockerImages = core.getMultilineInput('restore');
+            yield runDeserialize(artifactName, dockerImages);
         }
         catch (error) {
             core.setFailed(error.message);
