@@ -70,7 +70,7 @@ function runSerialize(artifactName, dockerImageFilterReference) {
             const artifactFolder = `${tempFolder}/${artifactName}`;
             const imageFolder = `${artifactFolder}/${image.split(':')[0]}`;
             yield io.mkdirP(imageFolder);
-            const imageFile = `${artifactFolder}/${image}`;
+            const imageFile = `${artifactFolder}/${image.replace(':', '/')}.tar`;
             yield exec.exec(`docker save --output ${imageFile} ${image}`);
             yield artifactClient.uploadArtifact(artifactName, [imageFile], artifactFolder);
         }

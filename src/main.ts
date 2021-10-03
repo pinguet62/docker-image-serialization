@@ -39,7 +39,7 @@ async function runSerialize(
     const imageFolder = `${artifactFolder}/${image.split(':')[0]}`
     await io.mkdirP(imageFolder)
 
-    const imageFile = `${artifactFolder}/${image}`
+    const imageFile = `${artifactFolder}/${image.replace(':', '/')}.tar`
     await exec.exec(`docker save --output ${imageFile} ${image}`)
 
     await artifactClient.uploadArtifact(
