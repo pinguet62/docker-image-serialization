@@ -61,6 +61,12 @@ function recursiveReaddirSync(dir) {
 /** Rename "myRepo/myImage/myVersion.tar" to "myRepo/myImage:myVersion" */
 function renameArtifactToDocker(folder) {
     return __awaiter(this, void 0, void 0, function* () {
+        for (let artifact of recursiveReaddirSync(folder)) {
+            let docker = artifact.replace('.tar', '');
+            const part = docker.split('/');
+            docker = part.reverse().slice(1).reverse().join('/') + ':' + part[part.length - 1];
+            yield io.mv(artifact, docker);
+        }
     });
 }
 function runSerialize(artifactName, dockerImageFilterReference) {
@@ -83,9 +89,10 @@ function runDeserialize(artifactName, dockerImages) {
         const artifactFolder = `${tempFolder}/${artifactName}`;
         yield artifactClient.downloadArtifact(artifactName, artifactFolder, { createArtifactFolder: true });
         yield renameArtifactToDocker(artifactFolder);
+        console.log(recursiveReaddirSync(artifactFolder));
         for (const dockerImage of dockerImages) {
             const files = glob.sync(dockerImage, { cwd: artifactFolder, nodir: true });
-            core.info(`files ${files}`);
+            console.log(`files ${files}`);
         }
         for (const imageFile of recursiveReaddirSync(artifactFolder)) {
             yield exec.exec(`docker load --input ${imageFile}`);
