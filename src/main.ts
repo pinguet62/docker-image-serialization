@@ -2,7 +2,6 @@ import * as artifact from '@actions/artifact'
 import * as core from '@actions/core'
 import * as exec from '@actions/exec'
 import * as io from '@actions/io'
-import * as glob from '@actions/glob'
 import fs from 'fs'
 import path from 'path'
 
@@ -45,7 +44,9 @@ async function runSerialize(
   }
 }
 
-async function runDeserialize(artifactName: string): Promise<void> {
+async function runDeserialize(artifactName: string, dockerImages: string[]): Promise<void> {
+  if (dockerImages.length === 0) return;
+
   const artifactFolder = `${tempFolder}/${artifactName}`
 
   await io.mkdirP(artifactFolder)
@@ -63,9 +64,8 @@ async function run(): Promise<void> {
     for (const dockerImageFilterReference of serialize)
       await runSerialize(artifactName, dockerImageFilterReference)
 
-    const restore = core.getMultilineInput('restore')
-    for (const dockerImage of restore)
-      await runDeserialize(artifactName /*, dockerImage*/)
+    const dockerImages = core.getMultilineInput('restore')
+    await runDeserialize(artifactName, dockerImages)
   } catch (error) {
     core.setFailed(error.message)
   }
