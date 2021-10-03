@@ -55,7 +55,7 @@ async function runDeserialize(artifactName: string, dockerImages: string[]): Pro
 
   for (const dockerImage of dockerImages) {
     const files = glob.sync(dockerImage, {cwd: artifactFolder})
-    core.debug(`files ${files}`)
+    core.info(`files ${files}`)
   }
 
   for (const imageFile of recursiveReaddirSync(artifactFolder)) {
