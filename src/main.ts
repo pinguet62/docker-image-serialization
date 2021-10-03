@@ -26,7 +26,7 @@ async function renameArtifactToDocker(folder: string) {
   for (let artifact of recursiveReaddirSync(folder)) {
     let docker = artifact.replace('.tar', '')
     const part = docker.split('/')
-    docker = part.reverse().slice(1).reverse().join('/') + ':' + part[part.length-1]
+    docker = [...part].reverse().slice(1).reverse().join('/') + ':' + part[part.length-1]
     await io.mv(artifact, docker)
   }
 }
