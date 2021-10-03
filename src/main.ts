@@ -71,8 +71,9 @@ async function runDeserialize(artifactName: string, dockerImages: string[]): Pro
   await renameArtifactToDocker(artifactFolder)
   console.log(recursiveReaddirSync(artifactFolder))
   for (const dockerImage of dockerImages) {
+    console.log('dockerImage', dockerImage)
     const files = glob.sync(dockerImage, {cwd: artifactFolder, nodir: true})
-    console.log(`files ${files}`)
+    console.log('files', files)
   }
 }
 
