@@ -87,10 +87,9 @@ function run() {
             const serialize = core.getMultilineInput('serialize');
             for (const dockerImageFilterReference of serialize)
                 yield runSerialize(artifactName, dockerImageFilterReference);
-            const restore = core.getBooleanInput('restore');
-            if (restore) {
-                yield runDeserialize(artifactName);
-            }
+            const restore = core.getMultilineInput('restore');
+            for (const dockerImage of restore)
+                yield runDeserialize(artifactName /*, dockerImage*/);
         }
         catch (error) {
             core.setFailed(error.message);

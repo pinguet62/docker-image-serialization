@@ -39,5 +39,5 @@ jobs:
       - name: 'Restore from previous job'
         uses: ./
         with:
-          restore: true
+          restore: '**/*'
       - run: docker image inspect ${{ matrix.module }}

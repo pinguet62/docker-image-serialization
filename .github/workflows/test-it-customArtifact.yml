@@ -33,7 +33,7 @@ jobs:
       - uses: ./
         with:
           #artifact-name: 'docker-images' # default
-          restore: true
+          restore: '**/*'
       - run: docker image inspect default
       - run: if [[ "$(docker images -q custom 2> /dev/null)" != "" ]]; then exit 1; fi
   deserialize-custom:
@@ -44,6 +44,6 @@ jobs:
       - uses: ./
         with:
           artifact-name: 'custom-artifact'
-          restore: true
+          restore: '**/*'
       - run: docker image inspect custom
       - run: if [[ "$(docker images -q default 2> /dev/null)" != "" ]]; then exit 1; fi

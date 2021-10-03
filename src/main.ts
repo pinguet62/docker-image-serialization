@@ -65,7 +65,7 @@ async function run(): Promise<void> {
 
     const restore = core.getMultilineInput('restore')
     for (const dockerImage of restore)
-      await runDeserialize(artifactName, dockerImage)
+      await runDeserialize(artifactName /*, dockerImage*/)
   } catch (error) {
     core.setFailed(error.message)
   }
