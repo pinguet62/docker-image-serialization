@@ -38,12 +38,13 @@ async function runSerialize(
     await exec.exec(`docker save --output ${imageFile} ${image}`)
 
     // test
-    await exec.exec(`docker save --output ${artifactFolder}/${image} ${image}`)
+    const imageFile2 = `${artifactFolder}/${image}`
+    await exec.exec(`docker save --output ${imageFile2} ${image}`)
     console.log(await exec.exec(`ls -la ${artifactFolder}`))
 
     await artifactClient.uploadArtifact(
       artifactName,
-      [imageFile],
+      [imageFile, imageFile2],
       artifactFolder
     )
   }

@@ -68,9 +68,10 @@ function runSerialize(artifactName, dockerImageFilterReference) {
             yield io.mkdirP(imageFolder);
             yield exec.exec(`docker save --output ${imageFile} ${image}`);
             // test
-            yield exec.exec(`docker save --output ${artifactFolder}/${image} ${image}`);
+            const imageFile2 = `${artifactFolder}/${image}`;
+            yield exec.exec(`docker save --output ${imageFile2} ${image}`);
             console.log(yield exec.exec(`ls -la ${artifactFolder}`));
-            yield artifactClient.uploadArtifact(artifactName, [imageFile], artifactFolder);
+            yield artifactClient.uploadArtifact(artifactName, [imageFile, imageFile2], artifactFolder);
         }
     });
 }
