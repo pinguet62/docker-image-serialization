@@ -91,8 +91,9 @@ function runDeserialize(artifactName, dockerImages) {
         for (const imageFile of recursiveReaddirSync(artifactFolder)) {
             yield exec.exec(`docker load --input ${imageFile}`);
         }
+        console.log('artifact', recursiveReaddirSync(artifactFolder));
         yield renameArtifactToDocker(artifactFolder);
-        console.log(recursiveReaddirSync(artifactFolder));
+        console.log('docker', recursiveReaddirSync(artifactFolder));
         for (const dockerImage of dockerImages) {
             console.log('dockerImage', dockerImage);
             const files = glob.sync(dockerImage, { cwd: artifactFolder, nodir: true });
