@@ -25,8 +25,10 @@ function recursiveReaddirSync(dir: string): string[] {
 async function renameArtifactToDocker(folder: string) {
   for (let artifact of recursiveReaddirSync(folder)) {
     let docker = artifact.replace('.tar', '')
+
     const part = docker.split('/')
     docker = [...part].reverse().slice(1).reverse().join('/') + ':' + part[part.length-1]
+
     await io.mv(artifact, docker)
   }
 }
@@ -61,16 +63,16 @@ async function runDeserialize(artifactName: string, dockerImages: string[]): Pro
   const artifactFolder = `${tempFolder}/${artifactName}`
 
   await artifactClient.downloadArtifact(artifactName, artifactFolder, {createArtifactFolder: true})
-  await renameArtifactToDocker(artifactFolder)
 
+  for (const imageFile of recursiveReaddirSync(artifactFolder)) {
+    await exec.exec(`docker load --input ${imageFile}`)
+  }
+
+  await renameArtifactToDocker(artifactFolder)
   console.log(recursiveReaddirSync(artifactFolder))
   for (const dockerImage of dockerImages) {
     const files = glob.sync(dockerImage, {cwd: artifactFolder, nodir: true})
     console.log(`files ${files}`)
-  }
-
-  for (const imageFile of recursiveReaddirSync(artifactFolder)) {
-    await exec.exec(`docker load --input ${imageFile}`)
   }
 }
 

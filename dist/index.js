@@ -88,14 +88,14 @@ function runDeserialize(artifactName, dockerImages) {
             return;
         const artifactFolder = `${tempFolder}/${artifactName}`;
         yield artifactClient.downloadArtifact(artifactName, artifactFolder, { createArtifactFolder: true });
+        for (const imageFile of recursiveReaddirSync(artifactFolder)) {
+            yield exec.exec(`docker load --input ${imageFile}`);
+        }
         yield renameArtifactToDocker(artifactFolder);
         console.log(recursiveReaddirSync(artifactFolder));
         for (const dockerImage of dockerImages) {
             const files = glob.sync(dockerImage, { cwd: artifactFolder, nodir: true });
             console.log(`files ${files}`);
-        }
-        for (const imageFile of recursiveReaddirSync(artifactFolder)) {
-            yield exec.exec(`docker load --input ${imageFile}`);
         }
     });
 }
